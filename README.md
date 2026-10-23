@@ -18,6 +18,11 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+## PostgreSQL environment
+
+Copy `.env.example` to `.env`, then set `SECRET_KEY` and the `DB_*` PostgreSQL
+values. The `.env` file is ignored by Git.
+
 ## Branches
 
 | Branch | Description |
