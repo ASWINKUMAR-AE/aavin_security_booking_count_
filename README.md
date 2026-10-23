@@ -1,8 +1,13 @@
-# Aavin OCR Milk Quantity
+# Aavin Security Booking Count
 
-Django application foundation for extracting and processing milk-quantity data from images or documents.
+Aavin security booking tracking with OCR-based data capture and milk-quantity processing.
 
-## Setup with WSL
+## Components
+
+- `config/`: Django project configuration.
+- `ocr/`: the OCR application and service.
+
+## Django setup with WSL
 
 ```bash
 cd "/mnt/d/aavin ocr milk wuantity"
@@ -13,4 +18,9 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-The OCR functionality belongs in the separate `ocr` Django app.
+## Branches
+
+| Branch | Description |
+| --- | --- |
+| `main` | Stable project branch |
+| `ocr`  | OCR-based booking tracking feature development |
