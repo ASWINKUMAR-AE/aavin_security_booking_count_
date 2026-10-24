@@ -1,0 +1,212 @@
+{% extends 'reports/base.html' %}
+
+{% block title %}Gatepass #{{ gate_pass.gate_pass_no }} | Aavin Dispatch{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div style="margin-bottom: 1.25rem; font-size: 0.85rem; color: #64748b;">
+  <a href="{% url 'gatepass_list' %}" style="color: #0284c7; text-decoration: none;">&larr; Back to Gatepasses</a>
+  <span style="margin: 0 6px;">/</span>
+  <span style="color: #0f172a; font-weight: 600;">Gatepass #{{ gate_pass.gate_pass_no }}</span>
+</div>
+
+<!-- Header with Action Bar -->
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem;">
+  <div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <h1 style="font-size: 1.6rem; font-weight: 800; color: #0b3c68;">Gatepass #{{ gate_pass.gate_pass_no }}</h1>
+      {% if gate_pass.status == 'SENT' %}
+        <span class="badge badge-sent">Email Sent</span>
+      {% elif gate_pass.status == 'PROCESSED' %}
+        <span class="badge badge-processed">Ready &bull; Verified</span>
+      {% elif gate_pass.status == 'FAILED' %}
+        <span class="badge badge-failed">Discrepancy</span>
+      {% else %}
+        <span class="badge badge-pending">Pending</span>
+      {% endif %}
+    </div>
+    <p style="color: #64748b; font-size: 0.9rem; margin-top: 4px;">
+      Vehicle <strong>{{ gate_pass.vehicle_no }}</strong> &bull; Route <strong>{{ gate_pass.route_name }}</strong> &bull; {{ gate_pass.date|date:"d M Y" }} ({{ gate_pass.shift }})
+    </p>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <a href="{% url 'gatepass_pdf_preview' gate_pass.pk %}" target="_blank" class="btn btn-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Preview &amp; Download PDF
+    </a>
+  </div>
+</div>
+
+<!-- Email Dispatch Card -->
+<div class="card" style="border-left: 4px solid #0284c7; background: #f0f9ff;">
+  <div class="card-body">
+    <h3 style="font-size: 1rem; font-weight: 700; color: #0b3c68; margin-bottom: 6px;">Send Gatepass PDF via Email</h3>
+    <p style="font-size: 0.85rem; color: #475569; margin-bottom: 12px;">
+      Dispatches the generated official PDF as an attachment to the security / plant manager email address.
+    </p>
+
+    <form method="POST" action="{% url 'gatepass_send_email' gate_pass.pk %}" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+      {% csrf_token %}
+      <div style="flex: 1; min-width: 260px;">
+        <input
+          type="email"
+          name="recipient_email"
+          value="{{ gate_pass.recipient_email }}"
+          placeholder="e.g. security.head@aavin.tn.gov.in or your.email@gmail.com"
+          required
+          style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem;"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send PDF Now
+      </button>
+    </form>
+
+    {% if gate_pass.sent_at %}
+      <div style="margin-top: 10px; font-size: 0.8rem; color: #166534; display: flex; align-items: center; gap: 6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Last sent to <strong>{{ gate_pass.recipient_email }}</strong> on {{ gate_pass.sent_at|date:"d M Y, h:i A" }}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Metadata Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+  <div class="card" style="margin-bottom: 0;">
+    <div class="card-header">
+      <div class="card-title">Document &amp; Transport Info</div>
+    </div>
+    <div class="card-body" style="font-size: 0.875rem;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 6px 0; color: #64748b; width: 45%;">Union</td>
+          <td style="padding: 6px 0; font-weight: 600;">{{ gate_pass.union_name }}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748b;">Vehicle Number</td>
+          <td style="padding: 6px 0; font-weight: 700; color: #0b3c68;">{{ gate_pass.vehicle_no }}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748b;">Assigned Route</td>
+          <td style="padding: 6px 0; font-weight: 600;">{{ gate_pass.route_name }}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748b;">Date &amp; Shift</td>
+          <td style="padding: 6px 0;">{{ gate_pass.date|date:"d.m.Y" }} / <strong>{{ gate_pass.shift }}</strong></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: 0;">
+    <div class="card-header">
+      <div class="card-title">Security &amp; Totals Summary</div>
+    </div>
+    <div class="card-body" style="font-size: 0.875rem;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 6px 0; color: #64748b; width: 45%;">Total Milk Volume</td>
+          <td style="padding: 6px 0; font-weight: 700; color: #0284c7;" class="mono">{{ gate_pass.total_litres }} Litres</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748b;">Total Tubs / Crates</td>
+          <td style="padding: 6px 0; font-weight: 700;" class="mono">{{ gate_pass.total_tubs }}</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748b;">Total Packets</td>
+          <td style="padding: 6px 0; font-weight: 700;" class="mono">{{ calc_pkts_total }} pkts</td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 0; color: #64748b;">Recorded Leaks</td>
+          <td style="padding: 6px 0; font-weight: 700; color: {% if gate_pass.total_leaks > 0 %}#dc2626{% else %}#16a34a{% endif %};">
+            {{ gate_pass.total_leaks }} packets
+          </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Line Items Table -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Booking Line Items (Products &amp; Quantities)</div>
+    <span style="font-size: 0.8rem; color: #64748b;">{{ items|length }} items</span>
+  </div>
+
+  <div style="overflow-x: auto;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">No.</th>
+          <th>Product Description</th>
+          <th style="text-align: right;">Cash Pkts</th>
+          <th style="text-align: right;">Card Pkts</th>
+          <th style="text-align: right;">Total Pkts</th>
+          <th style="text-align: right;">Tubs</th>
+          <th style="text-align: right;">Qty (Litres)</th>
+          <th style="text-align: center;">Leak</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td style="text-align: center; color: #64748b;" class="mono">{{ item.item_no }}</td>
+            <td><strong>{{ item.product_name }}</strong></td>
+            <td class="mono" style="text-align: right;">{% if item.cash_qty > 0 %}{{ item.cash_qty }}{% else %}-{% endif %}</td>
+            <td class="mono" style="text-align: right;">{% if item.card_qty > 0 %}{{ item.card_qty }}{% else %}-{% endif %}</td>
+            <td class="mono" style="text-align: right; font-weight: 700; color: #0b3c68;">{{ item.total_qty }}</td>
+            <td class="mono" style="text-align: right;">{{ item.tubs }}</td>
+            <td class="mono" style="text-align: right; font-weight: 700; color: #0284c7;">{{ item.qty_litres }}</td>
+            <td style="text-align: center;">
+              {% if item.leak_qty > 0 %}
+                <span style="color: #dc2626; font-weight: 700;">{{ item.leak_qty }}</span>
+              {% else %}
+                <span style="color: #94a3b8;">-</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr style="background: #fef3c7; font-weight: 800; border-top: 2px solid #0b3c68;">
+          <td colspan="2" style="padding: 12px 14px; color: #0b3c68;">MILK TOTAL</td>
+          <td class="mono" style="text-align: right; padding: 12px 14px;">{{ calc_cash_total }}</td>
+          <td class="mono" style="text-align: right; padding: 12px 14px;">{{ calc_card_total }}</td>
+          <td class="mono" style="text-align: right; padding: 12px 14px; color: #0b3c68;">{{ calc_pkts_total }}</td>
+          <td class="mono" style="text-align: right; padding: 12px 14px;">{{ gate_pass.total_tubs }}</td>
+          <td class="mono" style="text-align: right; padding: 12px 14px; color: #0284c7;">{{ gate_pass.total_litres }} L</td>
+          <td class="mono" style="text-align: center; padding: 12px 14px; color: {% if gate_pass.total_leaks > 0 %}#dc2626{% else %}#16a34a{% endif %};">{{ gate_pass.total_leaks }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+
+<!-- Validation & Audit Notes -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Data Integrity &amp; Audit Verification</div>
+  </div>
+  <div class="card-body">
+    {% if is_valid %}
+      <div style="display: flex; align-items: center; gap: 8px; color: #166534; font-weight: 600; font-size: 0.9rem;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        All calculations verified: Cash + Card matches Total packets, and item sums reconcile with Milk Grand Total ({{ gate_pass.total_litres }} L).
+      </div>
+    {% else %}
+      <div style="color: #b45309; font-size: 0.875rem;">
+        <strong>Audit Warnings Detected:</strong>
+        <ul style="margin: 8px 0 0 20px;">
+          {% for w in warnings %}
+            <li>{{ w }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
